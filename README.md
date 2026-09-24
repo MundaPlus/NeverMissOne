@@ -1,50 +1,55 @@
-# NeverMiss One
+# NeverMissOne
 
-> A personal reminder and safety check-in platform that escalates to your trusted contacts if you don't respond — built for people who live alone or work in high-risk situations.
+**Reminders and safety check-ins that escalate to trusted contacts when you don't respond.** NeverMissOne is a web platform for people who live alone: it sends reminders and scheduled "I'm OK" check-ins, and if a check-in goes unanswered, it works through an escalation plan that ends with your emergency contacts being alerted.
 
-![Status](https://img.shields.io/badge/status-beta-yellow)
+It runs as a subscription service at [nevermiss.one](https://nevermiss.one) with Free, Standard and Pro plans, and installs as a progressive web app on phones and desktops.
 
-## Overview
+<!-- screenshots -->
 
-Most reminder apps stop at the notification. NeverMiss One goes further: if a user fails to confirm a check-in, the platform automatically works through a configurable escalation sequence — retrying across different channels and notifying designated emergency contacts, all without requiring those contacts to create an account.
+## Features
 
-The platform is offered as a subscription SaaS product at [nevermiss.one](https://nevermiss.one), with Free, Standard, and Pro tiers. It targets individuals who want peace of mind that someone will be alerted if something goes wrong — from elderly people living alone to remote workers and solo travellers.
+- **Reminders.** One-off or recurring (daily, weekly, monthly or a custom recurrence rule), generated ahead as individual occurrences in the user's time zone.
+- **Check-ins that need an answer.** A check-in counts only when confirmed. If the confirmation window passes, the occurrence is marked missed, a soft nudge goes out first, and escalation starts if that also goes unanswered.
+- **Escalation policies.** Ordered steps, each with its own delay, channel and recipient: first you on another channel, then your contacts.
+- **Trusted Circle.** Emergency contacts are invited by a token link and need no account. When escalation fires, they see an alert page with the emergency plan you wrote in advance.
+- **Several delivery channels.** Email, browser push, Telegram, Viber and ntfy, each verified before use. Delivery attempts are logged and failed sends are retried.
+- **Paired devices.** A small device can be paired with an account through a short pairing flow and then show check-in status and confirm check-ins through a token-authenticated API.
+- **Accounts and security.** Password login, Google and GitHub sign-in, TOTP two-factor authentication with trusted devices, and an audit log of notifications and actions.
+- **Billing.** Stripe subscriptions with a customer portal; plan limits are enforced automatically when a subscription changes.
+- **Engagement.** A weekly digest email, check-in streaks, referrals and a feature poll where users vote on what comes next.
+- **Administration.** A dashboard with signups, churn, active users and recurring revenue; user, plan, escalation and notification views; failed-job inspection; bot management; and drafts for outreach posts with tracked links.
+- **Operations.** Scheduler and queue heartbeats behind a health endpoint that shows when background processing has stopped, daily backups with monitoring and disk-space limits, and error tracking with Sentry.
 
-## Key Capabilities
+## Tech stack
 
-- **Set reminders that actually matter** — one-off or recurring reminders (daily, weekly, monthly, or custom schedules) delivered across whichever channels the user prefers
-- **Require confirmation, not just delivery** — reminders can require an explicit "I'm OK" response; if none arrives within a set window, the platform treats it as a missed check-in
-- **Automatic escalation sequences** — if a user misses a check-in, the platform works through an ordered set of steps: retrying on different channels, then notifying emergency contacts, with configurable delays between each step
-- **Reach users where they already are** — notifications delivered via email, browser push (no app install needed), Telegram, and Viber; each user chooses their own combination
-- **Emergency contacts need no account** — trusted contacts receive a secure, one-time link that shows them the user's emergency plan and any relevant instructions; no registration required
-- **Structured emergency plans** — users can pre-write instructions for contacts (e.g. "call my GP", "check the spare key is under the mat"), surfaced automatically when escalation triggers
-- **Secure by design** — two-factor authentication, OAuth login via Google and GitHub, encrypted messaging credentials, and a full audit log of every notification and action
+PHP · Laravel · MariaDB · Blade · Tailwind CSS · Vite · Laravel Cashier (Stripe) · Socialite · Sanctum · Web Push · Telegram and Viber bots · ntfy · Sentry · Spatie Backup · PHPUnit
 
-## Tech Highlights
+## How it works
 
-| Layer | Technology |
-|---|---|
-| Backend | PHP / Laravel |
-| Database | MariaDB |
-| Frontend | Blade templates, Tailwind CSS, Bootstrap 5 |
-| Progressive Web App | Installable on mobile and desktop, offline-capable |
-| Notifications | Email, Web Push, Telegram Bot, Viber Bot |
-| Billing | Stripe (subscription management + customer portal) |
-| Authentication | Password, TOTP two-factor auth, Google/GitHub OAuth |
-| Background processing | Laravel Queues + Scheduler (fully self-hosted, no third-party queue service) |
+```
+scheduler (every minute / 15 min)
+  generate occurrences ──► send due ──► detect missed ──► soft-check nudge
+                                                              │ no answer
+                                                              ▼
+                                            escalation steps (delay, channel, recipient)
+                                                              │
+queue workers ──► notification router ──► email · push · Telegram · Viber · ntfy
+```
 
-## Screenshots
+Reminder occurrences move through a status lifecycle (pending, sent, confirmed, missed), and every notification goes through one router that picks the channel implementation, records the attempt and schedules retries. Telegram and Viber bots use webhooks to link a user's or contact's chat to their account. All background work runs on Laravel's own scheduler and queue, with no third-party queue service.
 
-> *Screenshots available on request or at [nevermiss.one](https://nevermiss.one)*
+## Status
 
-## Status & Availability
+The service is live in beta. WhatsApp delivery is stubbed in the code but not implemented. Organisation accounts for lone-worker safety are an idea on the roadmap, not a feature.
 
-NeverMiss One is in active beta, deployed to production at [nevermiss.one](https://nevermiss.one). Core reminder, check-in, escalation, and notification flows are fully functional. Planned near-term additions include WhatsApp as a notification channel and expanded referral and rewards features. The platform is proprietary and operated by Munda Plus d.o.o.
+## Availability
 
-## Interested?
+The source code is not public. NeverMissOne is operated by Munda Plus at [nevermiss.one](https://nevermiss.one). The platform is also available for licensing, custom deployment or white-label adaptation. Get in touch via [munda.si](https://www.munda.si/#contact).
 
-This is a proprietary project by **Munda Plus d.o.o.**
-The full codebase is available for review upon request.
+## License
 
-📧 marko@munda.si  
-🌐 [munda.si](https://www.munda.si)
+Proprietary. © 2026 MUNDA PLUS d.o.o. All rights reserved. See [LICENSE](LICENSE).
+
+## Author
+
+Built by [Marko Munda](https://www.munda.si/) · [Munda Plus](https://github.com/MundaPlus)
